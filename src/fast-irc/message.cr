@@ -25,7 +25,7 @@ module FastIrc
         end
 
         def inspect(io)
-            io << "Prefix(@target=#{target}, @user=#{user}, @host=#{host})"
+            io << "Prefix(@target=#{target.inspect}, @user=#{user.inspect}, @host=#{host.inspect})"
         end
 
         def to_s(io)
@@ -47,7 +47,7 @@ module FastIrc
     end
 
     struct Message
-        getter      prefix
+        getter       prefix
         slice_getter command
 
         def_equals prefix, command, params
@@ -60,7 +60,7 @@ module FastIrc
         end
 
         def inspect(io)
-            io << "Message(@prefix=#{prefix.inspect}, @command=#{command}, @params=#{params})"
+            io << "Message(@prefix=#{prefix.inspect}, @command=#{command.inspect}, @params=#{params.inspect})"
         end
 
         def to_s(io)
