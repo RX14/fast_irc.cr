@@ -17,7 +17,7 @@ module FastIrc
 
         def_equals target, user, host
 
-        private def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start = nil, @user_length = nil, @host_start = nil, @host_length = nil)
+        def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start = nil, @user_length = nil, @host_start = nil, @host_length = nil)
         end
 
         def initialize(@target, @user, @host)
@@ -52,7 +52,7 @@ module FastIrc
 
         def_equals prefix, command, params
 
-        private def initialize(@str : Slice(UInt8), @prefix, @command_start, @command_length, @params_start = nil, @params_length = nil)
+        def initialize(@str : Slice(UInt8), @prefix, @command_start, @command_length, @params_start = nil, @params_length = nil)
         end
 
         def initialize(@prefix, @command, @params)
