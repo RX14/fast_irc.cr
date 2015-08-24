@@ -29,16 +29,17 @@ module FastIrc
         end
 
         def to_s(io)
-            io << target
 
-            if user = user
+            io << @target
+
+            if user = @user
                 io << '!'
-                io << user
+                io << @user
             end
 
-            if host = host
-                io << '@'
-                io << host
+            if host = @host
+                io << '@' if @user || @target
+                io << @host
             end
         end
 
