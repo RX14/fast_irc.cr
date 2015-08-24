@@ -42,7 +42,7 @@ module FastIrc
             end
         end
 
-        alias_method to_irc, to_s
+        #alias_method to_irc, to_s
     end
 
     struct Message
@@ -81,6 +81,6 @@ module FastIrc
             end
         end
 
-        alias_method to_irc, to_s
+        #alias_method to_irc, to_s
     end
 end

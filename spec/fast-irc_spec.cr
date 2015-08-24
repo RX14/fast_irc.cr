@@ -42,17 +42,23 @@ describe FastIrc::Message do
 #    end
 
     it "emits a basic message" do
-        gen(nil, "PING", ["1234"]).to_irc.should eq("PING 1234")
+        gen(nil, "PING", ["1234"]).to_s.should eq("PING 1234")
     end
 
-    it "properly detects invalid parameter in last position" do
-        gen(nil, "PING", [":stuff"]).to_irc.should eq("PING ::stuff")
-        gen(nil, "PING", ["stuff with space"]).to_irc.should eq("PING :stuff with space")
-        gen(nil, "PING", [""]).to_irc.should eq("PING :")
+    it "properly detects last param starting with a colon" do
+      gen(nil, "PING", [":stuff"]).to_s.should eq("PING ::stuff")
+    end
+
+    it "properly detects last param containing a space" do
+      gen(nil, "PING", ["stuff with space"]).to_s.should eq("PING :stuff with space")
+    end
+
+    it "properly detects last param being empty" do
+      gen(nil, "PING", [""]).to_s.should eq("PING :")
     end
 
     it "properly outputs the prefix" do
-        gen("prefix", "PING").to_irc.should eq(":prefix PING")
+        gen("prefix", "PING").to_s.should eq(":prefix PING")
     end
 
 #    it "properly outputs parameterless ircv3 tags" do
