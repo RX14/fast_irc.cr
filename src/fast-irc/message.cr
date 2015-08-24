@@ -70,7 +70,7 @@ module FastIrc
 
             io << command
 
-            if params = params
+            if params = self.params
                 params.each do |param|
                     io << ' '
                     if param.includes? ' '
