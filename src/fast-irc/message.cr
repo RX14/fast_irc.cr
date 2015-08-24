@@ -64,13 +64,14 @@ module FastIrc
 
         def to_s(io)
             if prefix = prefix
+                io << ':'
                 io << prefix
                 io << ' '
             end
 
             io << command
 
-            if params = params
+            if params = self.params
                 params.each do |param|
                     io << ' '
                     if param.includes? ' '
