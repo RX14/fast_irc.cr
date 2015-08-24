@@ -1,5 +1,5 @@
 module FastIrc
-    struct Message
+    module ParserMacros # https://github.com/manastech/crystal/issues/1265
         macro incr
             pos += 1
             cur = str[pos]
@@ -11,35 +11,46 @@ module FastIrc
             end
         end
 
+        macro parse_prefix
+            target_start = pos
+            incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord
+            target_length = pos - target_start
+
+            if cur == '!'.ord
+                incr
+
+                user_start = pos
+                incr_while cur != '@'.ord
+                user_length = pos - user_start
+            end
+
+            if cur == '@'.ord
+                incr
+
+                host_start = pos
+                incr_while cur != ' '.ord
+                host_length = pos - host_start
+            end
+
+            prefix = Prefix.new(str, target_start, target_length, user_start, user_length, host_start, host_length)
+        end
+    end
+
+    struct Message
+        include ParserMacros
+
         def self.parse(str : Slice(UInt8))
             raise "IRC message is not null terminated" if str[-1] != 0
             pos = 0
             cur = str[pos]
 
+            prefix :: Prefix
+
             if cur == ':'.ord
                 incr
                 
-                target_start = pos
-                incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord
-                target_length = pos - target_start
+                parse_prefix
 
-                if cur == '!'.ord
-                    incr
-
-                    user_start = pos
-                    incr_while cur != '@'.ord
-                    user_length = pos - user_start
-                end
-
-                if cur == '@'.ord
-                    incr
-
-                    host_start = pos
-                    incr_while cur != ' '.ord
-                    host_length = pos - host_start
-                end
-
-                prefix = Prefix.new(str, target_start, target_length, user_start, user_length, host_start, host_length)
                 incr
             end
 
@@ -84,6 +95,26 @@ module FastIrc
                 @params = params
             end
             @params
+        end
+    end
+
+    struct Prefix
+        include ParserMacros
+
+        def self.parse(str : Slice(UInt8))
+            raise "IRC message is not null terminated" if str[-1] != 0
+            pos = 0
+            cur = str[pos]
+
+            prefix :: Prefix
+
+            parse_prefix
+
+            prefix
+        end
+
+        def self.parse(str)
+            parse Slice.new(str.cstr, str.bytesize + 1)
         end
     end
 end
