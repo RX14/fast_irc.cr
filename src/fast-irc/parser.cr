@@ -51,8 +51,6 @@ module FastIrc
                 incr
                 
                 params_start = pos
-                incr_while true
-                params_length = pos - params_start
             end
             
             Message.new(str, prefix, command_start, command_length, params_start)
