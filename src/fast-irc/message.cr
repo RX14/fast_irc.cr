@@ -75,7 +75,7 @@ module FastIrc
             if params = self.params
                 params.each do |param|
                     io << ' '
-                    if param.includes? ' '
+                    if param.empty? || param.starts_with?(':') || param.includes? ' '
                         io << ':'
                     end
                     io << param
