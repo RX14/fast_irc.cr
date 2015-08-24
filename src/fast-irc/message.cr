@@ -29,7 +29,6 @@ module FastIrc
         end
 
         def to_s(io)
-            io << ":"
             io << target
 
             if user = user
