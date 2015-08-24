@@ -45,7 +45,7 @@ module FastIrc
 
             command_start = pos
             incr_while cur != ' '.ord
-            command_length = pos - command_start
+            command = String.new str[command_start, pos - command_start]
 
             unless cur == 0
                 incr
@@ -53,7 +53,7 @@ module FastIrc
                 params_start = pos
             end
             
-            Message.new(str, prefix, command_start, command_length, params_start)
+            Message.new(str, prefix, command, params_start)
         end
 
         def self.parse(str)

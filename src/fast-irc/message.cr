@@ -47,12 +47,12 @@ module FastIrc
     end
 
     struct Message
-        getter       prefix
-        slice_getter command
+        getter prefix
+        getter command
 
         def_equals prefix, command, params
 
-        def initialize(@str : Slice(UInt8), @prefix, @command_start, @command_length, @params_start = nil, @params_length = nil)
+        def initialize(@str : Slice(UInt8), @prefix, @command, @params_start = nil)
         end
 
         def initialize(@prefix, @command, @params)
