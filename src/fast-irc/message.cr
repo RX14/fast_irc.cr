@@ -34,12 +34,12 @@ module FastIrc
 
             if user = @user
                 io << '!'
-                io << @user
+                io << user
             end
 
             if host = @host
                 io << '@' if @user || @target
-                io << @host
+                io << host
             end
         end
 
