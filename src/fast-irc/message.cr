@@ -64,6 +64,7 @@ module FastIrc
 
         def to_s(io)
             if prefix = prefix
+                io << ':'
                 io << prefix
                 io << ' '
             end
