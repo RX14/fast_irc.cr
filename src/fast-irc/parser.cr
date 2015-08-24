@@ -44,7 +44,7 @@ module FastIrc
             pos = 0
             cur = str[pos]
 
-            prefix :: Prefix
+            prefix = nil
 
             if cur == ':'.ord
                 incr
@@ -106,7 +106,7 @@ module FastIrc
             pos = 0
             cur = str[pos]
 
-            prefix :: Prefix
+            prefix = nil
 
             parse_prefix
 
