@@ -13,8 +13,19 @@ module FastIrc
 
         macro parse_prefix
             target_start = pos
-            incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord
+            incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord && cur != '.'.ord
+            if cur == '.'.ord
+                is_host = true
+                incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord
+            end
             target_length = pos - target_start
+
+            if is_host
+                host_start = target_start
+                host_length = target_length
+                target_start = nil
+                target_length = nil
+            end
 
             if cur == '!'.ord
                 incr
