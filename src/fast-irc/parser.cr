@@ -90,7 +90,7 @@ module FastIrc
             parse Slice.new(str.cstr, str.bytesize + 1)
         end
 
-        def params
+        def params?
             unless @params
                 if pos = @params_start
                     str = @str
@@ -110,13 +110,17 @@ module FastIrc
                         break if cur == 0
                         incr
                     end
+                    @params = params
                 end
-                @params = params
             end
             @params
         end
 
-        def tags
+        def params
+            params? || [] of String
+        end
+
+        def tags?
             unless @tags
                 if pos = @tags_start
                     str = @str
@@ -185,10 +189,14 @@ module FastIrc
 
                         incr # Skip ';'
                     end
+                    @tags = tags
                 end
-                @tags = tags
             end
             @tags
+        end
+
+        def tags
+            tags? || {} of String => String|Nil
         end
     end
 
