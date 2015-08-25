@@ -48,7 +48,7 @@ module FastIrc
 
             if cur == ':'.ord
                 incr
-                
+
                 parse_prefix
 
                 incr
@@ -60,11 +60,11 @@ module FastIrc
 
             unless cur == 0
                 incr
-                
+
                 params_start = pos
             end
-            
-            Message.new(str, prefix, command, params_start)
+
+            Message.new(str, prefix, command.not_nil!, params_start)
         end
 
         def self.parse(str)
@@ -94,7 +94,7 @@ module FastIrc
                 end
                 @params = params
             end
-            @params
+            @params.not_nil!
         end
     end
 
