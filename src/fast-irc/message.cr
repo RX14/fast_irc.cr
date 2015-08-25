@@ -17,7 +17,7 @@ module FastIrc
 
         def_equals target, user, host
 
-        def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start = nil, @user_length = nil, @host_start = nil, @host_length = nil)
+        def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start, @user_length, @host_start, @host_length)
         end
 
         def initialize(@target, @user, @host)
@@ -42,26 +42,24 @@ module FastIrc
                 io << host
             end
         end
-
-        #alias_method to_irc, to_s
     end
 
     struct Message
         getter prefix
         getter command
 
-        def_equals prefix, command, params
+        def_equals prefix, command, params, tags
 
-        def initialize(@str : Slice(UInt8), @prefix, @command, @params_start = nil)
+        def initialize(@str : Slice(UInt8), @tags_start, @prefix, @command, @params_start)
           @params = nil
         end
 
-        def initialize(@prefix, @command, @params)
+        def initialize(@tags, @prefix, @command, @params)
             @str = Slice(UInt8).new(0)
         end
 
         def inspect(io)
-            io << "Message(@prefix=#{prefix.inspect}, @command=#{command.inspect}, @params=#{params.inspect})"
+            io << "Message(@tags=#{tags.inspect}, @prefix=#{prefix.inspect}, @command=#{command.inspect}, @params=#{params.inspect})"
         end
 
         def to_s(io)
@@ -83,7 +81,5 @@ module FastIrc
                 end
             end
         end
-
-        #alias_method to_irc, to_s
     end
 end

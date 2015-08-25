@@ -57,6 +57,15 @@ module FastIrc
 
             prefix = nil
 
+            if cur == '@'.ord
+                incr
+
+                tags_start = pos
+                incr_while cur != ' '.ord
+
+                incr
+            end
+
             if cur == ':'.ord
                 incr
 
@@ -74,8 +83,7 @@ module FastIrc
 
                 params_start = pos
             end
-
-            Message.new(str, prefix, command.not_nil!, params_start)
+            Message.new(str, tags_start, prefix, command.not_nil!, params_start)
         end
 
         def self.parse(str)
@@ -84,12 +92,12 @@ module FastIrc
 
         def params
             unless @params
-                params = [] of String
                 if pos = @params_start
                     str = @str
 
                     cur = str[pos]
 
+                    params = [] of String
                     while true
                         str_start = pos
                         if cur == ':'.ord
@@ -105,7 +113,82 @@ module FastIrc
                 end
                 @params = params
             end
-            @params.not_nil! # If params is nil here, it means shit hit the fan
+            @params
+        end
+
+        def tags
+            unless @tags
+                if pos = @tags_start
+                    str = @str
+
+                    cur = str[pos]
+
+                    tags = {} of String => String|Nil
+                    while true
+                        # At start of ircv3 tag
+                        key_start = pos
+                        incr_while cur != ';'.ord && cur != '='.ord && cur != ' '.ord
+                        key = String.new str[key_start, pos - key_start]
+
+                        if cur == '='.ord
+                            incr # Skip '='
+
+                            part_start = pos
+                            incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord
+                            part_length = pos - part_start
+
+                            if cur == '\\'.ord
+                                # Enter escaped parsing mode
+                                value = String::Builder.build do |b|
+                                    b.write(str + part_start, part_length) # Write what was before the first escape
+                                    incr
+
+                                    while true
+                                        puts "ESCAPE SWITCH: #{cur.chr}"
+                                        case cur
+                                        when ':'.ord
+                                            b.write_byte ';'.ord.to_u8
+                                        when 's'.ord
+                                            b.write_byte ' '.ord.to_u8
+                                        when '\\'.ord
+                                            b.write_byte '\\'.ord.to_u8
+                                        when 'r'.ord
+                                            b.write_byte '\r'.ord.to_u8
+                                        when 'n'.ord
+                                            b.write_byte '\n'.ord.to_u8
+                                        end
+                                        incr
+
+                                        part_start = pos
+                                        incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord
+                                        part_length = pos - part_start
+                                        b.write(str + part_start, part_length)
+
+                                        puts "BN: '#{cur.chr}' #{cur == ';'.ord || cur == ' '.ord}"
+                                        break if cur == ';'.ord || cur == ' '.ord # Finish string building
+
+                                        # We are cur == '\\'
+                                        incr
+                                    end
+                                end
+                            else
+                                value = String.new str[part_start, part_length]
+                            end
+                        else
+                            value = nil
+                        end # End value parsing
+
+                        tags[key] = value
+
+                        # We must be on ';' or ' '
+                        break if cur == ' '.ord
+
+                        incr # Skip ';'
+                    end
+                end
+                @tags = tags
+            end
+            @tags
         end
     end
 

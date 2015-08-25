@@ -4,7 +4,7 @@ def parse(line)
     FastIrc::Message.parse(line)
 end
 
-def gen(sender, command, params = [] of String, tags = {} of String => String|Nil)
+def gen(sender, command, params = nil, tags = nil)
     prefix = nil
     if sender
         match = sender.match(/^([^!@]+)(?:(?:!([^@]+))?@(.+))?$/)
@@ -12,7 +12,7 @@ def gen(sender, command, params = [] of String, tags = {} of String => String|Ni
             prefix = FastIrc::Prefix.new(match[1], match[2]?, match[3]?)
         end
     end
-    FastIrc::Message.new(prefix, command, params)
+    FastIrc::Message.new(tags, prefix, command, params)
 end
 
 describe FastIrc::Message do
@@ -25,7 +25,7 @@ describe FastIrc::Message do
     end
 
     it "properly lets inpect itself" do
-      gen("sender!user@host", "command", ["param1"]).inspect.should eq("Message(@prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])")
+      gen("sender!user@host", "command", ["param1"]).inspect.should eq("Message(@tags=nil, @prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])")
     end
 
     it "parses a basic message" do
@@ -40,18 +40,18 @@ describe FastIrc::Message do
         parse(":nick!user@host PRIVMSG #channel test").should eq(gen("nick!user@host", "PRIVMSG", ["#channel", "test"]))
     end
 
-#    it "parses an irv3 annotated chat message" do
-#        parse("@account=account\\sowner :nick!user@host PRIVMSG #channel :test message").should eq(gen("nick!user@host", "PRIVMSG", ["#channel", "test message"], {"account" => "account owner"}))
-#    end
-#
-#    it "parses a very complex ircv3 message" do
-#        parse("@account=account\\sowner;kilobyte22.de/custom_flag :sender 1337 param1 param2 param3 param4 param5 param6 :param 7").should eq(gen(
-#            "sender",
-#            "1337",
-#            ["param1", "param2", "param3", "param4", "param5", "param6", "param 7"],
-#            {"account": "account owner", "kilobyte22.de/custom_flag": nil}
-#        ))
-#    end
+    it "parses an irv3 annotated chat message" do
+        parse("@account=account\\sowner :nick!user@host PRIVMSG #channel :test message").should eq(gen("nick!user@host", "PRIVMSG", ["#channel", "test message"], {"account" => "account owner"}))
+    end
+
+    it "parses a very complex ircv3 message" do
+        parse("@account=account\\sowner;kilobyte22.de/custom_flag :sender 1337 param1 param2 param3 param4 param5 param6 :param 7").should eq(gen(
+            "sender",
+            "1337",
+            ["param1", "param2", "param3", "param4", "param5", "param6", "param 7"],
+            {"account": "account owner", "kilobyte22.de/custom_flag": nil}
+        ))
+    end
 
     it "emits a basic message" do
         gen(nil, "PING", ["1234"]).to_s.should eq("PING 1234")
