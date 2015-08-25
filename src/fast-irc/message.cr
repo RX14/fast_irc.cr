@@ -53,6 +53,7 @@ module FastIrc
         def_equals prefix, command, params
 
         def initialize(@str : Slice(UInt8), @prefix, @command, @params_start = nil)
+          @params = nil
         end
 
         def initialize(@prefix, @command, @params)

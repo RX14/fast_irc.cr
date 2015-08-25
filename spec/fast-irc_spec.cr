@@ -16,6 +16,14 @@ def gen(sender, command, params = [] of String, tags = {} of String => String|Ni
 end
 
 describe FastIrc::Message do
+
+    it "does not fail when accessing any of its getters" do
+      msg = parse(":nick!user@host PRIVMSG #channel :test message")
+      msg.prefix.should eq(FastIrc::Prefix.new("nick", "user", "host"))
+      msg.command.should eq("PRIVMSG")
+      msg.params.should eq(["#channel", "test message"])
+    end
+
     it "parses a basic message" do
         parse("PING 1234").should eq(gen(nil, "PING", ["1234"]))
     end
