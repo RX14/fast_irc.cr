@@ -24,6 +24,10 @@ describe FastIrc::Message do
       msg.params.should eq(["#channel", "test message"])
     end
 
+    it "properly lets inpect itself" do
+      gen("sender!user@host", "command", ["param1"]).inspect.should eq("Message(@prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])")
+    end
+
     it "parses a basic message" do
         parse("PING 1234").should eq(gen(nil, "PING", ["1234"]))
     end
