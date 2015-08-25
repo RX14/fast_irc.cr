@@ -1,12 +1,12 @@
 def parse(line)
-  FastIrc::Prefix.parse(line)
+  FastIRC::Prefix.parse(line)
 end
 
 def gen(nick, user, host)
-  FastIrc::Prefix.new(nick, user, host)
+  FastIRC::Prefix.new(nick, user, host)
 end
 
-describe FastIrc::Prefix do
+describe FastIRC::Prefix do
   it "parses a nickmask" do
     parse("nick!user@host").should eq(gen("nick", "user", "host"))
   end

@@ -13,7 +13,7 @@ private macro slice_getter(name)
     end
 end
 
-module FastIrc
+module FastIRC
     struct Prefix
         slice_getter target
         slice_getter user

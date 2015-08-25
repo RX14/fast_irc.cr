@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 def parse(line)
-    FastIrc::Message.parse(line)
+    FastIRC::Message.parse(line)
 end
 
 def gen(sender, command, params = nil, tags = nil)
@@ -9,17 +9,17 @@ def gen(sender, command, params = nil, tags = nil)
     if sender
         match = sender.match(/^([^!@]+)(?:(?:!([^@]+))?@(.+))?$/)
         if match
-            prefix = FastIrc::Prefix.new(match[1], match[2]?, match[3]?)
+            prefix = FastIRC::Prefix.new(match[1], match[2]?, match[3]?)
         end
     end
-    FastIrc::Message.new(tags, prefix, command, params)
+    FastIRC::Message.new(tags, prefix, command, params)
 end
 
-describe FastIrc::Message do
+describe FastIRC::Message do
 
     it "does not fail when accessing any of its getters" do
       msg = parse(":nick!user@host PRIVMSG #channel :test message")
-      msg.prefix.should eq(FastIrc::Prefix.new("nick", "user", "host"))
+      msg.prefix.should eq(FastIRC::Prefix.new("nick", "user", "host"))
       msg.command.should eq("PRIVMSG")
       msg.params.should eq(["#channel", "test message"])
     end

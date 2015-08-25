@@ -1,4 +1,5 @@
-module FastIrc
+module FastIRC
+    # :nodoc:
     module ParserMacros # https://github.com/manastech/crystal/issues/1265
         macro incr
             pos += 1
@@ -50,6 +51,8 @@ module FastIrc
     struct Message
         include ParserMacros
 
+        # Parses an IRC Message from a Slice(UInt8).
+        # The slice should not have trailing \r\n characters and should be null terminated.
         def self.parse(str : Slice(UInt8))
             raise "IRC message is not null terminated" if str[-1] != 0
             pos = 0
@@ -86,10 +89,13 @@ module FastIrc
             Message.new(str, tags_start, prefix, command.not_nil!, params_start)
         end
 
+        # Parses an IRC message from a String.
+        # The String should not have the trailing "\r\n" characters.
         def self.parse(str)
             parse Slice.new(str.cstr, str.bytesize + 1)
         end
 
+        # The parameters of the IRC message, or nil if there were none.
         def params?
             unless @params
                 if pos = @params_start
@@ -101,12 +107,14 @@ module FastIrc
                     while true
                         str_start = pos
                         if cur == ':'.ord
-                            str_start += 1
-                            incr_while true
+                            str_start += 1 # Don't include ':'
+                            str_length = str.length - str_start - 1 # -1 for the null byte
+                            cur = 0 # Simulate end of string
                         else
                             incr_while cur != ' '.ord
+                            str_length = pos - str_start
                         end
-                        params << String.new str[str_start, pos - str_start]
+                        params << String.new str[str_start, str_length]
                         break if cur == 0
                         incr
                     end

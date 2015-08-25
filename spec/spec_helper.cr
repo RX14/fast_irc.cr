@@ -1,2 +1,2 @@
 require "spec"
-require "../src/fast-irc"
+require "../src/fast_irc"
