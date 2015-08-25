@@ -94,7 +94,7 @@ module FastIrc
                 end
                 @params = params
             end
-            @params.not_nil!
+            @params.not_nil! # If params is nil here, it means shit hit the fan
         end
     end
 
