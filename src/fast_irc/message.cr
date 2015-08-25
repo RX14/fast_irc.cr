@@ -21,9 +21,12 @@ module FastIRC
 
         def_equals target?, user?, host?
 
+        # Initialises the Prefix with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
+        # Use this method only if you know what you are doing.
         def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start, @user_length, @host_start, @host_length)
         end
 
+        # Initialises the Prefix with the given target, user and host strings.
         def initialize(@target, @user, @host)
             @str = Slice(UInt8).new(0)
         end
@@ -32,6 +35,7 @@ module FastIRC
             io << "Prefix(@target=#{target?.inspect}, @user=#{user?.inspect}, @host=#{host?.inspect})"
         end
 
+        # Converts the prefix back into an IRC format string. (e.g. "nick!user@host" )
         def to_s(io)
 
             io << @target
@@ -56,10 +60,13 @@ module FastIRC
 
         def_equals prefix?, command, params?, tags?
 
+        # Initialises the Message with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
+        # Use this method only if you know what you are doing.
         def initialize(@str : Slice(UInt8), @tags_start, @prefix, @command, @params_start)
           @params = nil
         end
 
+        # Initialises the Message with the given tags, prefix, command and params.
         def initialize(@tags, @prefix, @command, @params)
             @str = Slice(UInt8).new(0)
         end
@@ -68,6 +75,7 @@ module FastIRC
             io << "Message(@tags=#{tags?.inspect}, @prefix=#{prefix?.inspect}, @command=#{command.inspect}, @params=#{params?.inspect})"
         end
 
+        # Converts the Message back into an IRC format string. (e.g. "@tag :nick!user@host COMMAND arg1 :more args" )
         def to_s(io)
             if tags = self.tags?
                 io << '@'

@@ -95,7 +95,7 @@ module FastIRC
             parse Slice.new(str.cstr, str.bytesize + 1)
         end
 
-        # The parameters of the IRC message, or nil if there were none.
+        # The parameters of the IRC message as an Array(String), or nil if there were none.
         def params?
             unless @params
                 if pos = @params_start
@@ -124,10 +124,14 @@ module FastIRC
             @params
         end
 
+        # The parameters of the IRC message as an Array(String), or an empty array if there were none.
+        # For faster performance with 0 parameter messages, use `params?`.
         def params
             params? || [] of String
         end
 
+        # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or nil if there were none.
+        # Tags with no value are mapped to nil.
         def tags?
             unless @tags
                 if pos = @tags_start
@@ -201,6 +205,9 @@ module FastIRC
             @tags
         end
 
+        # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or an empty Hash if there were none.
+        # Tags with no value are mapped to nil.
+        # For faster performance when there are no tags, use `tags?`
         def tags
             tags? || {} of String => String|Nil
         end
@@ -209,6 +216,8 @@ module FastIRC
     struct Prefix
         include ParserMacros
 
+        # Parses an IRC Prefix from a Slice(UInt8).
+        # The slice should not have trailing \r\n characters and should be null terminated.
         def self.parse(str : Slice(UInt8))
             raise "IRC message is not null terminated" if str[-1] != 0
             pos = 0
@@ -221,6 +230,8 @@ module FastIRC
             prefix
         end
 
+        # Parses an IRC Prefix from a String.
+        # The String should not have the trailing "\r\n" characters.
         def self.parse(str)
             parse Slice.new(str.cstr, str.bytesize + 1)
         end
