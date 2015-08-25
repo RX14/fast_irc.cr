@@ -73,19 +73,19 @@ describe FastIrc::Message do
         gen("prefix", "PING").to_s.should eq(":prefix PING")
     end
 
-#    it "properly outputs parameterless ircv3 tags" do
-#        gen(nil, "PING", [] of String, {"test": nil}).to_irc.should eq("@test PING")
-#    end
-#
-#    it "properly outputs parameterized ircv3 tags" do
-#        gen(nil, "PING", [] of String, {"foo": "bar"}).to_irc.should eq("@foo=bar PING")
-#    end
-#
-#    it "properly encodes tag values during output" do
-#        gen(nil, "PING", [] of String, {"test": " \\\n\0;"}).to_irc.should eq("@test=\\s\\\\\\n\\0\\: PING")
-#    end
-#
-#    it "properly encodes multiple tags" do
-#        gen(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_irc.should eq("@foo=bar;baz PING")
-#    end
+    it "properly outputs parameterless ircv3 tags" do
+        gen(nil, "PING", [] of String, {"test": nil}).to_s.should eq("@test PING")
+    end
+
+    it "properly outputs parameterized ircv3 tags" do
+        gen(nil, "PING", [] of String, {"foo": "bar"}).to_s.should eq("@foo=bar PING")
+    end
+
+    it "properly encodes tag values during output" do
+        gen(nil, "PING", [] of String, {"test": " \\\n;"}).to_s.should eq("@test=\\s\\\\\\n\\: PING")
+    end
+
+    it "properly encodes multiple tags" do
+        gen(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_s.should eq("@foo=bar;baz PING")
+    end
 end

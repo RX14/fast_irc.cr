@@ -49,6 +49,8 @@ module FastIrc
     end
 
     struct Message
+        include ParserMacros
+
         getter! prefix
         getter command
 
@@ -67,6 +69,51 @@ module FastIrc
         end
 
         def to_s(io)
+            if tags = self.tags?
+                io << '@'
+                first = true
+                tags.each do |key, value|
+                    unless first
+                        io << ';'
+                    end
+                    first = false
+
+                    io << key
+
+                    if value
+                        io << '='
+
+                        str = Slice.new(value.cstr, value.bytesize + 1)
+                        pos = 0
+
+                        cur = str[pos]
+
+                        while true
+                            part_start = pos
+                            incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord && cur != '\r'.ord && cur != '\n'.ord
+                            io << String.new str[part_start, pos - part_start]
+
+                            case cur
+                            when 0
+                                break
+                            when ';'.ord
+                                io << "\\:"
+                            when ' '.ord
+                                io << "\\s"
+                            when '\\'.ord
+                                io << "\\\\"
+                            when '\r'.ord
+                                io << "\\r"
+                            when '\n'.ord
+                                io << "\\n"
+                            end
+                            incr
+                        end
+                    end
+                end
+                io << ' '
+            end
+
             if prefix = self.prefix?
                 io << ':'
                 io << prefix
