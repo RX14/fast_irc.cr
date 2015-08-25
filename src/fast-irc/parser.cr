@@ -148,7 +148,6 @@ module FastIrc
                                     incr
 
                                     while true
-                                        puts "ESCAPE SWITCH: #{cur.chr}"
                                         case cur
                                         when ':'.ord
                                             b.write_byte ';'.ord.to_u8
@@ -168,7 +167,6 @@ module FastIrc
                                         part_length = pos - part_start
                                         b.write(str + part_start, part_length)
 
-                                        puts "BN: '#{cur.chr}' #{cur == ';'.ord || cur == ' '.ord}"
                                         break if cur == ';'.ord || cur == ' '.ord # Finish string building
 
                                         # We are cur == '\\'
