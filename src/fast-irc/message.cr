@@ -5,7 +5,7 @@ private macro slice_getter(name)
                 @{{name.id}} = String.new @str[{{name.id}}_start, {{name.id}}_length]
             end
         end
-        @{{name.id}}
+        @{{name.id}}.not_nil!
     end
 end
 
