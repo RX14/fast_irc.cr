@@ -1,3 +1,4 @@
+[![Travis CI](https://img.shields.io/travis/RX14/fast-irc.cr.svg)](https://travis-ci.org/RX14/fast-irc.cr)
 # fast-irc.cr
 
 A fast IRC parsing library for crystal.
