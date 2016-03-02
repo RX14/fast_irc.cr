@@ -91,7 +91,7 @@ module FastIRC
                     if value
                         io << '='
 
-                        str = Slice.new(value.cstr, value.bytesize + 1)
+                        str = Slice.new(value.to_unsafe, value.bytesize + 1)
                         pos = 0
 
                         cur = str[pos]

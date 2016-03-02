@@ -92,7 +92,7 @@ module FastIRC
         # Parses an IRC message from a String.
         # The String should not have the trailing "\r\n" characters.
         def self.parse(str)
-            parse Slice.new(str.cstr, str.bytesize + 1)
+            parse Slice.new(str.to_unsafe, str.bytesize + 1)
         end
 
         # The parameters of the IRC message as an Array(String), or nil if there were none.
@@ -108,7 +108,7 @@ module FastIRC
                         str_start = pos
                         if cur == ':'.ord
                             str_start += 1 # Don't include ':'
-                            str_length = str.length - str_start - 1 # -1 for the null byte
+                            str_length = str.size - str_start - 1 # -1 for the null byte
                             cur = 0 # Simulate end of string
                         else
                             incr_while cur != ' '.ord
@@ -156,7 +156,7 @@ module FastIRC
                             if cur == '\\'.ord
                                 # Enter escaped parsing mode
                                 value = String::Builder.build do |b|
-                                    b.write(str + part_start, part_length) # Write what was before the first escape
+                                    b.write(str[part_start, part_length]) # Write what was before the first escape
                                     incr
 
                                     while true
@@ -177,7 +177,7 @@ module FastIRC
                                         part_start = pos
                                         incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord
                                         part_length = pos - part_start
-                                        b.write(str + part_start, part_length)
+                                        b.write(str[part_start, part_length])
 
                                         break if cur == ';'.ord || cur == ' '.ord # Finish string building
 
@@ -233,7 +233,7 @@ module FastIRC
         # Parses an IRC Prefix from a String.
         # The String should not have the trailing "\r\n" characters.
         def self.parse(str)
-            parse Slice.new(str.cstr, str.bytesize + 1)
+            parse Slice.new(str.to_unsafe, str.bytesize + 1)
         end
     end
 end
