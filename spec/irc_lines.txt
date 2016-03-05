@@ -1,0 +1,261 @@
+REHASHNICK :ElazarUSER guest tolmoon tolsun :Ronnie Regan
+NICK :Wiz:this:message:is:invalid
+NICK :WizPASS :secretpasswordhere
+NICK :Wiz
+NICK :Wiz_
+NICK Wiz :1
+:WiZ NICK :Kilroy
+USER guest tolmoon tolsun :Ronnie Regan
+:testnick USER guest tolmoon tolsun :Ronnie Regan
+SERVER test.oulu.fi 1 :[tolsun.oulu.fi] Experimental server
+:tolsun.oulu.fi SERVER csd.bu.edu 5 :BU Central Server
+OPER foo :bar
+QUIT
+QUIT :Gone to have lunch
+SQUIT tolsun.oulu.fi :Bad Link ?
+:Trillian SQUIT cm22.eng.umd.edu :Server out of control
+JOIN :#foobar
+JOIN &foo :fubar
+JOIN #foo,&bar :fubar
+JOIN #foo,#bar :fubar,foobar
+JOIN :#foo,#bar
+:WiZ JOIN :#Twilight_zone
+PART :#twilight_zone
+PART :#oz-ops,&group5
+:WiZ!jto@tolsun.oulu.fi PART #playzone :I lost
+:WiZ!jto@DCE7E23D:1D6D03E4:2248D1C4:IP PART #playzone :I lost
+:WiZ!jto@facebook/hhvm/sgolemon PART #playzone :I lost
+:WiZ!jto@gateway/web/irccloud.com/x-yjyvvvvrtuiwaqco PART #playzone :I lost
+MODE #Finnish :+im
+MODE #Finnish +o :Kilroy
+MODE #Finnish +v :Wiz
+MODE #Finnish +ov :Kilroy Wiz
+MODE #Finnish +mvv-v :Kilroy Wiz Angel
+MODE #Fins :-s
+MODE #42 +k :oulu
+MODE #42 +ks :oulu
+MODE #eu-opers +l :10
+MODE #eu-opers +lL :10 #eu-opers-overflow
+MODE &oulu :+b
+MODE &oulu +b :*!*@*
+MODE &oulu +b :*!*@*.edu
+MODE &oulu +b-b :*!*@*.edu *!*@*.ac.uk
+MODE Wiz :-w
+:Angel MODE Angel :+i
+MODE Wiz :-o
+MODE Kilroy +s :+CcQq
+MODE Angel +ws :+CcQq
+MODE :#channel
+:Wiz TOPIC #test :New topic
+TOPIC #test :another topic
+TOPIC :#test
+NAMES :#twilight_zone,#42
+NAMES
+LIST
+LIST :#twilight_zone,#42
+:Angel INVITE Wiz :#Dust
+INVITE Wiz :#Twilight_Zone
+KICK &Melbourne :Matthew
+KICK #Finnish John :Speaking English
+:WiZ KICK #Finnish :John
+:Wiz VERSION :*.se
+VERSION :tolsun.oulu.fi
+STATS :m
+:Wiz STATS c :eff.org
+LINKS :*.au
+:WiZ LINKS *.bu.edu :*.edu
+TIME :tolsun.oulu.fi
+:Angel TIME :*.au
+CONNECT :tolsun.oulu.fi
+:WiZ CONNECT eff.org 6667 :csd.bu.edu
+TRACE :*.oulu.fi
+:WiZ TRACE :AngelDust
+ADMIN :tolsun.oulu.fi
+:WiZ ADMIN :*.edu
+INFO :csd.bu.edu
+:Avalon INFO :*.fi
+INFO :Angel
+:Angel PRIVMSG Wiz :Hello are you receiving this message ?
+PRIVMSG Angel :yes I'm receiving it !receiving it !'u>(768u+1n) .br
+PRIVMSG jto@tolsun.oulu.fi :Hello !
+PRIVMSG $*.fi :Server tolsun.oulu.fi rebooting.
+PRIVMSG #*.edu :NSFNet is undergoing work, expect interruptions
+:foobar1!foobar2@foobar3.user.network PRIVMSG #channel :hi all
+:foo_bar1!foo_bar2@foo_bar3.user.network PRIVMSG #channel :hi all
+WHO :*.fi
+WHO jto* :o
+WHOIS :wiz
+WHOIS eff.org :Trillian
+WHOWAS :Wiz
+WHOWAS Mermaid :9
+WHOWAS Trillian 1 :*.edu
+KILL David :(csd.bu.edu <- tolsun.oulu.fi)
+PING :tolsun.oulu.fi
+PING :WiZ
+PONG csd.bu.edu :tolsun.oulu.fi
+ERROR :Server *.fi already exists
+NOTICE WiZ :ERROR from csd.bu.edu -- Server *.fi already exists
+AWAY :Gone to lunch.
+:Wiz AWAY
+REHASH
+RESTART
+SUMMON :jto
+SUMMON jto :tolsun.oulu.fi
+USERS :eff.org
+:John USERS :tolsun.oulu.fi
+:csd.bu.edu WALLOPS :Connect '*.uiuc.edu 6667' from Joshua
+USERHOST Wiz Michael Marty :p
+ISON :phone trillian WiZ jarlek Avalon Angel Monstah
+PROTOCTL NAMESX
+401
+402
+403
+404
+405
+406
+407
+409
+411
+412
+413
+414
+421
+422
+423
+424
+431
+432
+433
+436
+441
+442
+443
+444
+445
+446
+451
+461
+462
+463
+464
+465
+467
+471
+472
+473
+474
+475
+481
+482
+483
+491
+501
+502
+300
+302
+303
+301
+305
+306
+311
+312
+313
+317
+318
+319
+314
+369
+321
+322
+323
+324
+331
+332
+341
+342
+351
+352
+315
+353
+366
+364
+365
+367
+368
+371
+374
+375
+372
+376
+381
+382
+391
+392
+393
+394
+395
+200
+201
+202
+203
+204
+205
+206
+208
+261
+211
+212
+213
+214
+215
+216
+218
+219
+241
+242
+243
+244
+221
+251
+252
+253
+254
+255
+256
+257
+258
+259
+999
+:john!~jsmith@example.com PRIVMSG #test :ACTION test
+PRIVMSG victim :FINGER
+:victim NOTICE actor :FINGER :Please check my USERINFO instead :Klaus Zeuge (sojge@mizar) 1 second has passed since victim gave a command last.
+PRIVMSG victim :VERSION
+:victim NOTICE actor :VERSION Kiwi:5.2:GNU Emacs 18.57.19 under SunOS 4.1.1 on Sun SLC:FTP.Lysator.LiU.SE:/pub/emacs Kiwi-5.2.el.Z Kiwi.README
+PRIVMSG victim :SOURCE cs.bu.edu:/pub/irc:Kiwi.5.2.el.Z
+PRIVMSG victim :USERINFO
+:victim NOTICE actor :USERINFO :I'm studying computer science in Uppsala, I'm male (somehow, that seems to be an important matter on IRC:-) and I speak fluent swedish, decent german, and some english.
+PRIVMSG victim :CLIENTINFO
+:victim NOTICE actor :CLIENTINFO :You can request help of the commands CLIENTINFO ERRMSG FINGER USERINFO VERSION by giving an argument to CLIENTINFO.
+:victim NOTICE actor :ERRMSG clientinfo clientinfo :Query is unknown
+PRIVMSG victim :PING 1350742705
+:victim NOTICE actor :PING 1350742748
+PRIVMSG victim :TIME
+:victim NOTICE actor :TIME :Thu Aug 11 22:52:51 1994 CST
+PRIVMSG victim :ACTIONlooks
+:server.name 372 BotNick :Who left a null byte  in here?
+ in here?ame 372 BotNick :Who left a carriage return
+:server.name 372 BotNick :Who left a line feed
+ in here?
+:pratchett.freenode.net 004 Phergie3 pratchett.freenode.net ircd-seven-1.1.3 DOQRSZaghilopswz CFILMPQbcefgijklmnopqrstvz bkloveqjfI
+:services. 328 Phergie3 #laravel :http://laravel.com
+:julien-c!~julien-c@tru75-6-82-240-32-161.fbx.proxad.net PART #laravel
+PRIVMSG ____ :test
+PRIVMSG |blah :test
+PRIVMSG hello|there :test
+:nick!ident@123.host.com PRIVMSG target :message
+:nick!ident- PRIVMSG target :message
+:nick!ident@localhost PRIVMSG target :message
+USER myident 0 * :Ronnie Reagan
+:Float_!~pi@4Float0.10Rizon0.4Rules JOIN :#/b/
+:*status!znc@znc.in PRIVMSG thebot :Error from Server [Closing Link: 127.0.0.1 (Killed (linear (youtube loop)))]
+:*.quakenet.org MODE #example +o mike1256

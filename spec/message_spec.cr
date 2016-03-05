@@ -88,4 +88,10 @@ describe FastIRC::Message do
     it "properly encodes multiple tags" do
         gen_m(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_s.should eq("@foo=bar;baz PING")
     end
+
+    it "parses sample messages" do
+        File.each_line(__DIR__ + "/irc_lines.txt") do |line|
+            parse_m(line)
+        end
+    end
 end
