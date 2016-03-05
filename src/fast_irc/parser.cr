@@ -1,4 +1,10 @@
 module FastIRC
+    class ParseError < Exception
+        def initialize(cause = nil : Exception?)
+            super("Failed to parse IRC message", cause)
+        end
+    end
+
     # :nodoc:
     module ParserMacros # https://github.com/manastech/crystal/issues/1265
         macro incr
@@ -87,6 +93,8 @@ module FastIRC
                 params_start = pos
             end
             Message.new(str, tags_start, prefix, command.not_nil!, params_start)
+        rescue ex
+            raise ParseError.new(ex)
         end
 
         # Parses an IRC message from a String.
@@ -122,6 +130,8 @@ module FastIRC
                 end
             end
             @params
+        rescue ex
+            raise ParseError.new(ex)
         end
 
         # The parameters of the IRC message as an Array(String), or an empty array if there were none.
@@ -203,6 +213,8 @@ module FastIRC
                 end
             end
             @tags
+        rescue ex
+            raise ParseError.new(ex)
         end
 
         # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or an empty Hash if there were none.
@@ -228,6 +240,8 @@ module FastIRC
             parse_prefix
 
             prefix
+        rescue ex
+            raise ParseError.new(ex)
         end
 
         # Parses an IRC Prefix from a String.
