@@ -1,6 +1,7 @@
 /.deps/
 /libs/
 /.crystal/
+/.shards/
 /doc/
 
 
