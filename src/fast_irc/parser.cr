@@ -32,7 +32,7 @@ module FastIRC
                 incr
 
                 user_start = pos
-                incr_while cur != '@'.ord
+                incr_while cur != '@'.ord && cur != ' '.ord
                 user_length = pos - user_start
             end
 
