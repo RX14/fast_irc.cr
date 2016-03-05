@@ -1,7 +1,7 @@
 module FastIRC
     class ParseError < Exception
-        def initialize(cause = nil : Exception?)
-            super("Failed to parse IRC message", cause)
+        def initialize(message : String)
+            super("Failed to parse IRC message #{message.inspect}")
         end
     end
 
@@ -93,8 +93,8 @@ module FastIRC
                 params_start = pos
             end
             Message.new(str, tags_start, prefix, command.not_nil!, params_start)
-        rescue ex
-            raise ParseError.new(ex)
+        rescue
+            raise ParseError.new(String.new(str))
         end
 
         # Parses an IRC message from a String.
@@ -130,8 +130,8 @@ module FastIRC
                 end
             end
             @params
-        rescue ex
-            raise ParseError.new(ex)
+        rescue
+            raise ParseError.new(String.new(@str))
         end
 
         # The parameters of the IRC message as an Array(String), or an empty array if there were none.
@@ -213,8 +213,8 @@ module FastIRC
                 end
             end
             @tags
-        rescue ex
-            raise ParseError.new(ex)
+        rescue
+            raise ParseError.new(String.new(@str))
         end
 
         # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or an empty Hash if there were none.
@@ -241,7 +241,7 @@ module FastIRC
 
             prefix
         rescue ex
-            raise ParseError.new(ex)
+            raise ParseError.new(String.new(str))
         end
 
         # Parses an IRC Prefix from a String.
