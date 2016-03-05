@@ -19,79 +19,79 @@ describe FastIRC::Message do
 
     it "does not fail when accessing any of its getters" do
       msg = parse_m(":nick!user@host PRIVMSG #channel :test message")
-      msg.prefix.should eq(FastIRC::Prefix.new("nick", "user", "host"))
-      msg.command.should eq("PRIVMSG")
-      msg.params.should eq(["#channel", "test message"])
+      assert msg.prefix == FastIRC::Prefix.new("nick", "user", "host")
+      assert msg.command == "PRIVMSG"
+      assert msg.params == ["#channel", "test message"]
     end
 
     it "properly lets inpect itself" do
-      gen_m("sender!user@host", "command", ["param1"]).inspect.should eq("Message(@tags=nil, @prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])")
+      assert gen_m("sender!user@host", "command", ["param1"]).inspect == "Message(@tags=nil, @prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])"
     end
 
     it "parses a basic message" do
-        parse_m("PING 1234").should eq(gen_m(nil, "PING", ["1234"]))
+        assert parse_m("PING 1234") == gen_m(nil, "PING", ["1234"])
     end
 
     it "parses a typical chat message" do
-        parse_m(":nick!user@host PRIVMSG #channel :test message").should eq(gen_m("nick!user@host", "PRIVMSG", ["#channel", "test message"]))
+        assert parse_m(":nick!user@host PRIVMSG #channel :test message") == gen_m("nick!user@host", "PRIVMSG", ["#channel", "test message"])
     end
 
     it "parses a not so typical chat message" do
-        parse_m(":nick!user@host PRIVMSG #channel test").should eq(gen_m("nick!user@host", "PRIVMSG", ["#channel", "test"]))
+        assert parse_m(":nick!user@host PRIVMSG #channel test") == gen_m("nick!user@host", "PRIVMSG", ["#channel", "test"])
     end
 
     it "parses an irv3 annotated chat message" do
-        parse_m("@account=account\\sowner :nick!user@host PRIVMSG #channel :test message").should eq(gen_m("nick!user@host", "PRIVMSG", ["#channel", "test message"], {"account" => "account owner"}))
+        assert parse_m("@account=account\\sowner :nick!user@host PRIVMSG #channel :test message") == gen_m("nick!user@host", "PRIVMSG", ["#channel", "test message"], {"account" => "account owner"})
     end
 
     it "parses a very complex ircv3 message" do
-        parse_m("@account=account\\sowner;kilobyte22.de/custom_flag :sender 1337 param1 param2 param3 param4 param5 param6 :param 7").should eq(gen_m(
+        assert parse_m("@account=account\\sowner;kilobyte22.de/custom_flag :sender 1337 param1 param2 param3 param4 param5 param6 :param 7") == gen_m(
             "sender",
             "1337",
             ["param1", "param2", "param3", "param4", "param5", "param6", "param 7"],
             {"account": "account owner", "kilobyte22.de/custom_flag": nil}
-        ))
+        )
     end
 
     it "emits a basic message" do
-        gen_m(nil, "PING", ["1234"]).to_s.should eq("PING 1234")
+        assert gen_m(nil, "PING", ["1234"]).to_s == "PING 1234"
     end
 
     it "properly detects last param starting with a colon" do
-      gen_m(nil, "PING", [":stuff"]).to_s.should eq("PING ::stuff")
+        assert gen_m(nil, "PING", [":stuff"]).to_s == "PING ::stuff"
     end
 
     it "properly detects last param containing a space" do
-      gen_m(nil, "PING", ["stuff with space"]).to_s.should eq("PING :stuff with space")
+        assert gen_m(nil, "PING", ["stuff with space"]).to_s == "PING :stuff with space"
     end
 
     it "properly detects last param being empty" do
-      gen_m(nil, "PING", [""]).to_s.should eq("PING :")
+        assert gen_m(nil, "PING", [""]).to_s == "PING :"
     end
 
     it "properly outputs the prefix" do
-        gen_m("prefix", "PING").to_s.should eq(":prefix PING")
+        assert gen_m("prefix", "PING").to_s == ":prefix PING"
     end
 
     it "properly outputs parameterless ircv3 tags" do
-        gen_m(nil, "PING", [] of String, {"test": nil}).to_s.should eq("@test PING")
+        assert gen_m(nil, "PING", [] of String, {"test": nil}).to_s == "@test PING"
     end
 
     it "properly outputs parameterized ircv3 tags" do
-        gen_m(nil, "PING", [] of String, {"foo": "bar"}).to_s.should eq("@foo=bar PING")
+        assert gen_m(nil, "PING", [] of String, {"foo": "bar"}).to_s == "@foo=bar PING"
     end
 
     it "properly encodes tag values during output" do
-        gen_m(nil, "PING", [] of String, {"test": " \\\n;"}).to_s.should eq("@test=\\s\\\\\\n\\: PING")
+        assert gen_m(nil, "PING", [] of String, {"test": " \\\n;"}).to_s == "@test=\\s\\\\\\n\\: PING"
     end
 
     it "properly encodes multiple tags" do
-        gen_m(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_s.should eq("@foo=bar;baz PING")
+        assert gen_m(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_s == "@foo=bar;baz PING"
     end
 
     it "parses sample messages" do
         File.each_line(__DIR__ + "/irc_lines.txt") do |line|
-            parse_m(line)
+            parse_m(line.strip)
         end
     end
 end

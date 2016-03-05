@@ -2,5 +2,5 @@ version: 1.0
 shards:
   power_assert:
     github: Ragmaanir/power_assert.cr
-    version: 0.2.2
+    commit: 30c9cbec17b3e6ad5c6f37d5424c57c88cd8ecad
 
