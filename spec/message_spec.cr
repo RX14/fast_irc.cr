@@ -90,8 +90,15 @@ describe FastIRC::Message do
     end
 
     it "parses sample messages" do
-        File.each_line(__DIR__ + "/irc_lines.txt") do |line|
-            parse_m(line.strip)
+        @@irc_lines.each do |line|
+            parse_m(line)
+        end
+    end
+
+    it "reconstructs parsed messages" do
+        @@irc_lines.each do |line|
+            msg = parse_m(line)
+            assert msg.to_s == line
         end
     end
 end
