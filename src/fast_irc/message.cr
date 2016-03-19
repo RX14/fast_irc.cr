@@ -37,16 +37,17 @@ module FastIRC
 
         # Converts the prefix back into an IRC format string. (e.g. "nick!user@host" )
         def to_s(io)
+            if target = self.target?
+                io << target
+            end
 
-            io << @target
-
-            if user = @user
+            if user = self.user?
                 io << '!'
                 io << user
             end
 
-            if host = @host
-                io << '@' if @user || @target
+            if host = self.host?
+                io << '@' if user? || target?
                 io << host
             end
         end
@@ -124,18 +125,40 @@ module FastIRC
 
             if prefix = self.prefix?
                 io << ':'
-                io << prefix
+                prefix.to_s io
                 io << ' '
             end
 
             io << command
 
             if params = self.params?
-                params.each do |param|
+                params.each_with_index do |param, param_idx|
                     io << ' '
-                    if param.empty? || param.starts_with?(':') || param.includes? ' '
-                        io << ':'
+
+                    trailing = false
+                    param.each_char_with_index do |char, char_idx|
+                        if char == '\0' || char == '\r' || char == '\n'
+                            raise "Parameter cannot include '\\0', '\\r' or '\\n' while serialising #{inspect}" 
+                        end
+
+                        if (char_idx == 0 && char == ':') || char == ' '
+                            if param_idx == params.size - 1
+                                trailing = true
+                            else
+                                raise "Non-trailing parameter cannot start with ':' or contain ' ' while serialising #{inspect}"
+                            end
+                        end
                     end
+
+                    if param.empty?
+                        if param_idx == params.size - 1
+                            trailing = true
+                        else
+                            raise "Non-trailing parameter cannot be empty while serialising #{inspect}"
+                        end
+                    end
+
+                    io << ':' if trailing
                     io << param
                 end
             end
