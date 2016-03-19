@@ -27,7 +27,7 @@ module FastIRC
         end
 
         # Initialises the Prefix with the given target, user and host strings.
-        def initialize(@target, @user, @host)
+        def initialize(@target, @user = nil, @host = nil)
             @str = Slice(UInt8).new(0)
         end
 
@@ -67,7 +67,7 @@ module FastIRC
         end
 
         # Initialises the Message with the given tags, prefix, command and params.
-        def initialize(@tags, @prefix, @command, @params)
+        def initialize(@command, @params = nil, @prefix = nil, @tags = nil)
             @str = Slice(UInt8).new(0)
         end
 

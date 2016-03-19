@@ -12,7 +12,7 @@ def gen_m(sender, command, params = nil, tags = nil)
             prefix = FastIRC::Prefix.new(match[1], match[2]?, match[3]?)
         end
     end
-    FastIRC::Message.new(tags, prefix, command, params)
+    FastIRC::Message.new(command, params, prefix, tags)
 end
 
 describe FastIRC::Message do
