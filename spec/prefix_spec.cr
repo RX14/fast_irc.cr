@@ -1,3 +1,5 @@
+require "./spec_helper"
+
 def parse_p(line)
   FastIRC::Prefix.parse(line)
 end

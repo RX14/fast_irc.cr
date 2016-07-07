@@ -7,12 +7,12 @@ A fast IRC parsing library for crystal.
 
 ## Installation
 
-Add it to `Projectfile`
+Add it to `shard.yml`
 
-```crystal
-deps do
-  github "RX14/fast_irc.cr"
-end
+```yaml
+dependencies:
+  fast_irc:
+    github: RX14/fast_irc.cr
 ```
 
 ## Usage
@@ -21,9 +21,9 @@ end
 require "fast_irc"
 
 message = FastIrc::Message.parse ":nick!user@host COMMAND arg1 arg2 :arg3 ;)"
-message.command # "COMMAND"
-message.args    # ["arg1", "arg2", "arg3 ;)"]
-message.prefix  # Prefix(@target="nick", @user="user", @host="host")
+message.command # => "COMMAND"
+message.args    # => ["arg1", "arg2", "arg3 ;)"]
+message.prefix  # => Prefix(@target="nick", @user="user", @host="host")
 ```
 
 ## Development

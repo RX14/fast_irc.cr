@@ -9,7 +9,7 @@ description: |
 
 development_dependencies:
   power_assert:
-    github: Ragmaanir/power_assert.cr
-    branch: ahead
+    github: rosylilly/power_assert.cr
+    branch: master
 
 license: MIT

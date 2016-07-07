@@ -5,6 +5,7 @@ def parse_m(line)
 end
 
 def gen_m(sender, command, params = nil, tags = nil)
+    tags = tags.try &.map { |k, v| {k, v as String?} }.to_h
     prefix = nil
     if sender
         match = sender.match(/^([^!@]+)(?:(?:!([^@]+))?@(.+))?$/)
@@ -49,7 +50,7 @@ describe FastIRC::Message do
             "sender",
             "1337",
             ["param1", "param2", "param3", "param4", "param5", "param6", "param 7"],
-            {"account": "account owner", "kilobyte22.de/custom_flag": nil}
+            {"account" => "account owner", "kilobyte22.de/custom_flag" => nil}
         )
     end
 
@@ -74,29 +75,29 @@ describe FastIRC::Message do
     end
 
     it "properly outputs parameterless ircv3 tags" do
-        assert gen_m(nil, "PING", [] of String, {"test": nil}).to_s == "@test PING"
+        assert gen_m(nil, "PING", [] of String, {"test" => nil}).to_s == "@test PING"
     end
 
     it "properly outputs parameterized ircv3 tags" do
-        assert gen_m(nil, "PING", [] of String, {"foo": "bar"}).to_s == "@foo=bar PING"
+        assert gen_m(nil, "PING", [] of String, {"foo" => "bar"}).to_s == "@foo=bar PING"
     end
 
     it "properly encodes tag values during output" do
-        assert gen_m(nil, "PING", [] of String, {"test": " \\\n;"}).to_s == "@test=\\s\\\\\\n\\: PING"
+        assert gen_m(nil, "PING", [] of String, {"test" => " \\\n;"}).to_s == "@test=\\s\\\\\\n\\: PING"
     end
 
     it "properly encodes multiple tags" do
-        assert gen_m(nil, "PING", [] of String, {"foo": "bar", "baz": nil}).to_s == "@foo=bar;baz PING"
+        assert gen_m(nil, "PING", [] of String, {"foo" => "bar", "baz" => nil}).to_s == "@foo=bar;baz PING"
     end
 
     it "parses sample messages" do
-        @@irc_lines.each do |line|
+        IRC_LINES.each do |line|
             parse_m(line)
         end
     end
 
     it "reconstructs parsed messages" do
-        @@irc_lines.each do |line|
+        IRC_LINES.each do |line|
             msg = parse_m(line)
             assert msg.to_s == line
         end

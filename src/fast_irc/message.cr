@@ -11,6 +11,10 @@ private macro slice_getter(name)
     def {{name.id}}
         {{name.id}}?.not_nil!
     end
+
+    @{{name.id}}_start : Int32?
+    @{{name.id}}_length : Int32?
+    @{{name.id}} : String?
 end
 
 module FastIRC
@@ -61,15 +65,19 @@ module FastIRC
 
         def_equals prefix?, command, params?, tags?
 
+        @params : Array(String)?
+        @tags : Hash(String, String?)?
+
         # Initialises the Message with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
         # Use this method only if you know what you are doing.
-        def initialize(@str : Slice(UInt8), @tags_start, @prefix, @command, @params_start)
-          @params = nil
+        def initialize(@str : Slice(UInt8), @tags_start : Int32?, @prefix : Prefix?, @command : String, @params_start : Int32?)
         end
 
         # Initialises the Message with the given tags, prefix, command and params.
-        def initialize(@command, @params = nil, @prefix = nil, @tags = nil)
+        def initialize(@command, @params = nil, @prefix = nil, @tags : Hash(String, String?)? = nil)
             @str = Slice(UInt8).new(0)
+            @tags_start = nil
+            @params_start = nil
         end
 
         def inspect(io)
