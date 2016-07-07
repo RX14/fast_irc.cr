@@ -20,7 +20,7 @@ dependencies:
 ```crystal
 require "fast_irc"
 
-message = FastIrc::Message.parse ":nick!user@host COMMAND arg1 arg2 :arg3 ;)"
+message = FastIRC::Message.parse ":nick!user@host COMMAND arg1 arg2 :arg3 ;)"
 message.command # => "COMMAND"
 message.args    # => ["arg1", "arg2", "arg3 ;)"]
 message.prefix  # => Prefix(@target="nick", @user="user", @host="host")
