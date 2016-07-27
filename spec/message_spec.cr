@@ -24,10 +24,6 @@ describe FastIRC::Message do
     assert msg.params == ["#channel", "test message"]
   end
 
-  it "properly lets inpect itself" do
-    assert gen_m("sender!user@host", "command", ["param1"]).inspect == "Message(@tags=nil, @prefix=Prefix(@target=\"sender\", @user=\"user\", @host=\"host\"), @command=\"command\", @params=[\"param1\"])"
-  end
-
   it "parses a basic message" do
     assert parse_m("PING 1234") == gen_m(nil, "PING", ["1234"])
   end

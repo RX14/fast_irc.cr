@@ -1,87 +1,41 @@
-private macro slice_getter(name)
-    def {{name.id}}?
-        unless @{{name.id}}
-            if ({{name.id}}_start = @{{name.id}}_start) && ({{name.id}}_length = @{{name.id}}_length)
-                @{{name.id}} = String.new @str[{{name.id}}_start, {{name.id}}_length]
-            end
-        end
-        @{{name.id}}
-    end
-
-    def {{name.id}}
-        {{name.id}}?.not_nil!
-    end
-
-    @{{name.id}}_start : Int32?
-    @{{name.id}}_length : Int32?
-    @{{name.id}} : String?
-end
-
 module FastIRC
-  struct Prefix
-    slice_getter target
-    slice_getter user
-    slice_getter host
+  class Message
+    getter! prefix : Prefix?
+    getter command : String
 
-    def_equals target?, user?, host?
+    @params : Array(String)?
+      @tags : Hash(String, String | Nil)?
 
-    # Initialises the Prefix with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
-    # Use this method only if you know what you are doing.
-    def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start, @user_length, @host_start, @host_length)
-    end
-
-    # Initialises the Prefix with the given target, user and host strings.
-    def initialize(@target, @user = nil, @host = nil)
+    def initialize(@command, @params = nil, @prefix = nil, @tags = nil)
       @str = Slice(UInt8).new(0)
     end
-
-    def inspect(io)
-      io << "Prefix(@target=#{target?.inspect}, @user=#{user?.inspect}, @host=#{host?.inspect})"
-    end
-
-    # Converts the prefix back into an IRC format string. (e.g. "nick!user@host" )
-    def to_s(io)
-      if target = self.target?
-        io << target
-      end
-
-      if user = self.user?
-        io << '!'
-        io << user
-      end
-
-      if host = self.host?
-        io << '@' if user? || target?
-        io << host
-      end
-    end
-  end
-
-  struct Message
-    include ParserMacros
-
-    getter! prefix
-    getter command
 
     def_equals prefix?, command, params?, tags?
 
-    @params : Array(String)?
-    @tags : Hash(String, String?)?
-
-    # Initialises the Message with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
-    # Use this method only if you know what you are doing.
-    def initialize(@str : Slice(UInt8), @tags_start : Int32?, @prefix : Prefix?, @command : String, @params_start : Int32?)
+    # The parameters of the IRC message as an Array(String), or an empty array if there were none.
+    # For faster performance with 0 parameter messages, use `params?`.
+    def params
+      params? || [] of String
     end
 
-    # Initialises the Message with the given tags, prefix, command and params.
-    def initialize(@command, @params = nil, @prefix = nil, @tags : Hash(String, String?)? = nil)
-      @str = Slice(UInt8).new(0)
-      @tags_start = nil
-      @params_start = nil
+    # The parameters of the IRC message as an Array(String), or nil if there were none.
+    def params?
+      parse_params unless @params
+      @params
     end
 
-    def inspect(io)
-      io << "Message(@tags=#{tags?.inspect}, @prefix=#{prefix?.inspect}, @command=#{command.inspect}, @params=#{params?.inspect})"
+    # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or an empty Hash if there were none.
+    # Tags with no value are mapped to nil.
+    # For faster performance when there are no tags, use `tags?`
+    def tags
+      tags? || {} of String => String | Nil
+    end
+
+    # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or nil if there were none.
+    # Tags with no value are mapped to nil.
+    def tags?
+      parse_tags unless @tags
+      @tags
     end
 
     # Converts the Message back into an IRC format string. (e.g. "@tag :nick!user@host COMMAND arg1 :more args" )
@@ -90,9 +44,7 @@ module FastIRC
         io << '@'
         first = true
         tags.each do |key, value|
-          unless first
-            io << ';'
-          end
+          io << ';' unless first
           first = false
 
           io << key
@@ -107,8 +59,8 @@ module FastIRC
 
             while true
               part_start = pos
-              incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord && cur != '\r'.ord && cur != '\n'.ord
-              io << String.new str[part_start, pos - part_start]
+              read_until ';', ' ', '\\', '\r', '\n'
+              io.write str[part_start, pos - part_start]
 
               case cur
               when 0
@@ -131,13 +83,13 @@ module FastIRC
         io << ' '
       end
 
-      if prefix = self.prefix?
+      if prefix = @prefix
         io << ':'
         prefix.to_s io
         io << ' '
       end
 
-      io << command
+      io << @command
 
       if params = self.params?
         params.each_with_index do |param, param_idx|

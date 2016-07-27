@@ -1,3 +1,31 @@
+private macro parse_prefix
+  is_host = false
+  target = parse_field do
+    read_until ' ', '!', '@', '.'
+    if cur == '.'.ord
+      is_host = true
+      read_until ' ', '!', '@'
+    end
+  end
+
+  if is_host
+    host = target
+    target = nil
+  end
+
+  if cur == '!'.ord
+    incr
+    user = parse_field { read_until ' ', '@' }
+  end
+
+  if cur == '@'.ord
+    incr
+    host = parse_field { read_until ' ' }
+  end
+
+  prefix = Prefix.new(target, user, host)
+end
+
 module FastIRC
   class ParseError < Exception
     def initialize(message : String)
@@ -5,57 +33,8 @@ module FastIRC
     end
   end
 
-  # :nodoc:
-  module ParserMacros # https://github.com/manastech/crystal/issues/1265
-    macro incr
-            pos += 1
-            cur = str[pos]
-        end
-
-    macro incr_while(expr)
-            while {{expr}} && cur != 0
-                incr
-            end
-        end
-
-    macro parse_prefix
-            target_start = pos
-            incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord && cur != '.'.ord
-            if cur == '.'.ord
-                is_host = true
-                incr_while cur != ' '.ord && cur != '!'.ord && cur != '@'.ord
-            end
-            target_length = pos - target_start
-
-            if is_host
-                host_start = target_start
-                host_length = target_length
-                target_start = nil
-                target_length = nil
-            end
-
-            if cur == '!'.ord
-                incr
-
-                user_start = pos
-                incr_while cur != '@'.ord && cur != ' '.ord
-                user_length = pos - user_start
-            end
-
-            if cur == '@'.ord
-                incr
-
-                host_start = pos
-                incr_while cur != ' '.ord
-                host_length = pos - host_start
-            end
-
-            prefix = Prefix.new(str, target_start, target_length, user_start, user_length, host_start, host_length)
-        end
-  end
-
-  struct Message
-    include ParserMacros
+  class Message
+    include ParserHelpers
 
     # Parses an IRC Message from a Slice(UInt8).
     # The slice should not have trailing \r\n characters and should be null terminated.
@@ -70,7 +49,7 @@ module FastIRC
         incr
 
         tags_start = pos
-        incr_while cur != ' '.ord
+        read_until ' '
 
         incr
       end
@@ -83,16 +62,15 @@ module FastIRC
         incr
       end
 
-      command_start = pos
-      incr_while cur != ' '.ord
-      command = String.new str[command_start, pos - command_start]
+      command = parse_field { read_until ' ' }
 
       unless cur == 0
         incr
 
         params_start = pos
       end
-      Message.new(str, tags_start, prefix, command.not_nil!, params_start)
+
+      Message.new(str, tags_start, prefix, command, params_start)
     rescue
       raise ParseError.new(String.new(str))
     end
@@ -103,130 +81,111 @@ module FastIRC
       parse Slice.new(str.to_unsafe, str.bytesize + 1)
     end
 
-    # The parameters of the IRC message as an Array(String), or nil if there were none.
-    def params?
-      unless @params
-        if pos = @params_start
-          str = @str
+    def initialize(@str : Bytes, @tags_start : Int32?, @prefix, @command, @params_start : Int32?)
+    end
 
-          cur = str[pos]
+    private def parse_params
+      if pos = @params_start
+        str = @str
 
-          params = [] of String
-          while true
-            str_start = pos
-            if cur == ':'.ord
-              str_start += 1                        # Don't include ':'
-              str_length = str.size - str_start - 1 # -1 for the null byte
-              cur = 0                               # Simulate end of string
-            else
-              incr_while cur != ' '.ord
-              str_length = pos - str_start
-            end
-            params << String.new str[str_start, str_length]
-            break if cur == 0
-            incr
+        cur = str[pos]
+
+        params = [] of String
+        while true
+          str_start = pos
+          if cur == ':'.ord
+            str_start += 1                        # Don't include ':'
+            str_length = str.size - str_start - 1 # -1 for the null byte
+            cur = 0                               # Simulate end of string
+          else
+            read_until ' '
+            str_length = pos - str_start
           end
-          @params = params
+          params << String.new str[str_start, str_length]
+          break if cur == 0
+          incr
         end
+        @params = params
       end
-      @params
     rescue
       raise ParseError.new(String.new(@str))
     end
 
-    # The parameters of the IRC message as an Array(String), or an empty array if there were none.
-    # For faster performance with 0 parameter messages, use `params?`.
-    def params
-      params? || [] of String
-    end
+    private def parse_tags
+      if pos = @tags_start
+        str = @str
 
-    # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or nil if there were none.
-    # Tags with no value are mapped to nil.
-    def tags?
-      unless @tags
-        if pos = @tags_start
-          str = @str
+        cur = str[pos]
 
-          cur = str[pos]
+        tags = {} of String => String | Nil
+        while true
+          # At start of ircv3 tag
+          key_start = pos
+          read_until ';', '=', ' '
+          key = String.new str[key_start, pos - key_start]
 
-          tags = {} of String => String | Nil
-          while true
-            # At start of ircv3 tag
-            key_start = pos
-            incr_while cur != ';'.ord && cur != '='.ord && cur != ' '.ord
-            key = String.new str[key_start, pos - key_start]
+          if cur == '='.ord
+            incr # Skip '='
 
-            if cur == '='.ord
-              incr # Skip '='
+            part_start = pos
+            read_until ';', ' ', '\\'
+            part_length = pos - part_start
 
-              part_start = pos
-              incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord
-              part_length = pos - part_start
+            if cur == '\\'.ord
+              # Enter escaped parsing mode
+              value = String::Builder.build do |b|
+                b.write(str[part_start, part_length]) # Write what was before the first escape
+                incr
 
-              if cur == '\\'.ord
-                # Enter escaped parsing mode
-                value = String::Builder.build do |b|
-                  b.write(str[part_start, part_length]) # Write what was before the first escape
+                while true
+                  case cur
+                  when ':'.ord
+                    b.write_byte ';'.ord.to_u8
+                  when 's'.ord
+                    b.write_byte ' '.ord.to_u8
+                  when '\\'.ord
+                    b.write_byte '\\'.ord.to_u8
+                  when 'r'.ord
+                    b.write_byte '\r'.ord.to_u8
+                  when 'n'.ord
+                    b.write_byte '\n'.ord.to_u8
+                  end
                   incr
 
-                  while true
-                    case cur
-                    when ':'.ord
-                      b.write_byte ';'.ord.to_u8
-                    when 's'.ord
-                      b.write_byte ' '.ord.to_u8
-                    when '\\'.ord
-                      b.write_byte '\\'.ord.to_u8
-                    when 'r'.ord
-                      b.write_byte '\r'.ord.to_u8
-                    when 'n'.ord
-                      b.write_byte '\n'.ord.to_u8
-                    end
-                    incr
+                  part_start = pos
+                  read_until ';', ' ', '\\'
+                  part_length = pos - part_start
+                  b.write(str[part_start, part_length])
 
-                    part_start = pos
-                    incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord
-                    part_length = pos - part_start
-                    b.write(str[part_start, part_length])
+                  break if cur == ';'.ord || cur == ' '.ord # Finish string building
 
-                    break if cur == ';'.ord || cur == ' '.ord # Finish string building
-
-                    # We are cur == '\\'
-                    incr
-                  end
+                  # We are cur == '\\'
+                  incr
                 end
-              else
-                value = String.new str[part_start, part_length]
               end
             else
-              value = nil
-            end # End value parsing
+              value = String.new str[part_start, part_length]
+            end
+          else
+            value = nil
+          end # End value parsing
 
-            tags[key] = value
+          tags[key] = value
 
-            # We must be on ';' or ' '
-            break if cur == ' '.ord
+          # We must be on ';' or ' '
+          break if cur == ' '.ord
 
-            incr # Skip ';'
-          end
-          @tags = tags
+          incr # Skip ';'
         end
+        @tags = tags
       end
-      @tags
     rescue
       raise ParseError.new(String.new(@str))
-    end
-
-    # The IRCv3 tags of the IRC message as a Hash(String, String|Nil), or an empty Hash if there were none.
-    # Tags with no value are mapped to nil.
-    # For faster performance when there are no tags, use `tags?`
-    def tags
-      tags? || {} of String => String | Nil
     end
   end
 
   struct Prefix
-    include ParserMacros
+    include ParserHelpers
 
     # Parses an IRC Prefix from a Slice(UInt8).
     # The slice should not have trailing \r\n characters and should be null terminated.
