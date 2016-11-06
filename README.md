@@ -1,9 +1,15 @@
 [![Travis CI](https://img.shields.io/travis/RX14/fast_irc.cr.svg)](https://travis-ci.org/RX14/fast_irc.cr)
 # fast_irc.cr
 
-A fast IRC parsing library for crystal.
+An optimised IRC parsing library for crystal. Supports IRCv3 message tags. Getting started is as easy as `FastIRC.parse(io) do |message|`.
 
-## [Docs](http://www.docrystal.org/github.com/RX14/fast_irc.cr/)
+Fast_irc doesn't attempt to deal with the semantics of IRC messages. Messages are simply parsed into a machine-readable format and delivered to the user.
+
+## Performance
+
+Here fast_irc was tested parsing a `63748` byte IRC log file collected from real IRC activity on the esper.net IRC network. Fast_irc's performance on a single core averaged over 150MB/s, taking only 740 nanoseconds to parse a single line.
+
+In terms of memory performance, a single 8192 byte buffer is allocated per connection. All string values in the IRC prefix, the IRC command, and IRCv3 tag *keys* are interned in a global string pool to save memory. IRCv3 message tag values and IRC command parameters are not interned.
 
 ## Installation
 
@@ -13,22 +19,38 @@ Add it to `shard.yml`
 dependencies:
   fast_irc:
     github: RX14/fast_irc.cr
+    version: 0.3.0
 ```
+
+## Docs
+
+Build the documentation by cloning this repo and running `crystal doc`. HTML documentation will be placed in `doc/`.
 
 ## Usage
 
-```crystal
-require "fast_irc"
+It's easy to get started parsing IRC connections right away using fast_irc. Just pass an `IO` (likely a TCP connection to an IRC server) to `FastIRC.parse`. `Message` objects are yielded as they arrive on the connection. For a non-block way to read messages, see `FastIRC::Reader`.
 
-message = FastIRC::Message.parse ":nick!user@host COMMAND arg1 arg2 :arg3 ;)"
-message.command # => "COMMAND"
-message.params  # => ["arg1", "arg2", "arg3 ;)"]
-message.prefix  # => Prefix(@target="nick", @user="user", @host="host")
+```cr
+FastIRC.parse(io) do |message|
+  message.command       # => "PRIVMSG" : String
+  message.params        # => ["#crystal-lang", "Test message using fast_irc.cr!"] : Array(String)?
+  message.prefix.source # => "RX14" : String
+end
 ```
 
-## Development
+Generating IRC is just as easy. Create your `Message` object and call `to_s`.
 
-TODO: Write instructions for development
+```cr
+FastIRC::Message.new("PRIVMSG", ["#WAMM", "test message"]).to_s(io)
+```
+
+You can also add IRCv3 tags and a prefix. `FastIRC::Tags` is simply an alias for `Hash(String, String?)`. It is recommended to use the `FastIRC::Tags` alias when creating tags hashes both to clear intent, and to make sure that you don't end up with a `Hash(String, String)` instead, which is a binary-incompatible type.
+
+```
+prefix = FastIRC::Prefix.new(source: "RX14", user: "rx14", host: "rx14.co.uk")
+tags = FastIRC::Tags{"time" => "2016-11-11T22:27:15Z"}
+FastIRC::Message.new("PRIVMSG", ["#WAMM", "test message"], prefix: prefix, tags: tags).to_s(io)
+```
 
 ## Contributing
 
@@ -40,5 +62,5 @@ TODO: Write instructions for development
 
 ## Contributors
 
-- [RX14](https://github.com/RX14) RX14 - creator, maintainer
+- [RX14](https://github.com/RX14) Chris Hobbs - creator, maintainer
 - [Kilobyte22](https://github.com/Kilobyte22) Stephan Henrichs - IRC serialisation, specs

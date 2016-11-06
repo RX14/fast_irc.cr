@@ -1,15 +1,10 @@
 name: fast_irc
-version: 0.2.2
+version: 0.3.0
 
 authors:
   - Chris Hobbs <chris@rx14.co.uk>
 
 description: |
   A fast IRC parsing library for crystal  
-
-development_dependencies:
-  power_assert:
-    github: rosylilly/power_assert.cr
-    branch: master
 
 license: MIT

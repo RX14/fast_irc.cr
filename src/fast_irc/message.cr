@@ -1,174 +1,153 @@
-private macro slice_getter(name)
-    def {{name.id}}?
-        unless @{{name.id}}
-            if ({{name.id}}_start = @{{name.id}}_start) && ({{name.id}}_length = @{{name.id}}_length)
-                @{{name.id}} = String.new @str[{{name.id}}_start, {{name.id}}_length]
-            end
-        end
-        @{{name.id}}
-    end
-
-    def {{name.id}}
-        {{name.id}}?.not_nil!
-    end
-
-    @{{name.id}}_start : Int32?
-    @{{name.id}}_length : Int32?
-    @{{name.id}} : String?
-end
-
 module FastIRC
-  struct Prefix
-    slice_getter target
-    slice_getter user
-    slice_getter host
-
-    def_equals target?, user?, host?
-
-    # Initialises the Prefix with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
-    # Use this method only if you know what you are doing.
-    def initialize(@str : Slice(UInt8), @target_start, @target_length, @user_start, @user_length, @host_start, @host_length)
-    end
-
-    # Initialises the Prefix with the given target, user and host strings.
-    def initialize(@target, @user = nil, @host = nil)
-      @str = Slice(UInt8).new(0)
-    end
-
-    def inspect(io)
-      io << "Prefix(@target=#{target?.inspect}, @user=#{user?.inspect}, @host=#{host?.inspect})"
-    end
-
-    # Converts the prefix back into an IRC format string. (e.g. "nick!user@host" )
-    def to_s(io)
-      if target = self.target?
-        io << target
-      end
-
-      if user = self.user?
-        io << '!'
-        io << user
-      end
-
-      if host = self.host?
-        io << '@' if user? || target?
-        io << host
-      end
-    end
-  end
-
+  # An IRC message containing command, parameters, prefix and IRCv3 tags.
+  #
+  # To parse a line of IRC, see `FastIRC.parse` or `FastIRC.parse_line`.
   struct Message
-    include ParserMacros
+    # IRCv3 tags
+    getter tags : Tags?
+    # See `Prefix`
+    getter prefix : Prefix?
+    getter command : String
+    getter params : Array(String)?
 
-    getter! prefix
-    getter command
-
-    def_equals prefix?, command, params?, tags?
-
-    @params : Array(String)?
-    @tags : Hash(String, String?)?
-
-    # Initialises the Message with a backing Slice(UInt8) of bytes, and the locations of strings inside the slice.
-    # Use this method only if you know what you are doing.
-    def initialize(@str : Slice(UInt8), @tags_start : Int32?, @prefix : Prefix?, @command : String, @params_start : Int32?)
-    end
-
-    # Initialises the Message with the given tags, prefix, command and params.
-    def initialize(@command, @params = nil, @prefix = nil, @tags : Hash(String, String?)? = nil)
-      @str = Slice(UInt8).new(0)
-      @tags_start = nil
-      @params_start = nil
+    # ```
+    # m = FastIRC::Message.new("PRIVMSG", ["#WAMM", "testing message"])
+    # m.to_s # => "PRIVMSG #WAMM :testing message\r\n"
+    # ```
+    def initialize(@command, @params, *, @prefix = nil, @tags = nil)
     end
 
     def inspect(io)
-      io << "Message(@tags=#{tags?.inspect}, @prefix=#{prefix?.inspect}, @command=#{command.inspect}, @params=#{params?.inspect})"
+      io << "Message(@tags=#{@tags.inspect}, @prefix=#{@prefix.inspect}, @command=#{@command.inspect}, @params=#{@params.inspect})"
     end
 
-    # Converts the Message back into an IRC format string. (e.g. "@tag :nick!user@host COMMAND arg1 :more args" )
+    # Converts the message back into a raw IRC message, including trailing "\r\n".
     def to_s(io)
-      if tags = self.tags?
+      if tags = @tags
         io << '@'
-        first = true
-        tags.each do |key, value|
-          unless first
-            io << ';'
-          end
-          first = false
-
+        tags.join(';', io) do |(key, value)|
           io << key
 
           if value
             io << '='
-
-            str = Slice.new(value.to_unsafe, value.bytesize + 1)
-            pos = 0
-
-            cur = str[pos]
-
-            while true
-              part_start = pos
-              incr_while cur != ';'.ord && cur != ' '.ord && cur != '\\'.ord && cur != '\r'.ord && cur != '\n'.ord
-              io << String.new str[part_start, pos - part_start]
-
-              case cur
-              when 0
-                break
-              when ';'.ord
-                io << "\\:"
-              when ' '.ord
-                io << "\\s"
-              when '\\'.ord
-                io << "\\\\"
-              when '\r'.ord
-                io << "\\r"
-              when '\n'.ord
-                io << "\\n"
+            value.each_char do |char|
+              case char
+              when ';'
+                io << %q(\:)
+              when ' '
+                io << %q(\s)
+              when '\\'
+                io << %q(\\)
+              when '\r'
+                io << %q(\r)
+              when '\n'
+                io << %q(\n)
+              else
+                io << char
               end
-              incr
             end
           end
         end
         io << ' '
       end
 
-      if prefix = self.prefix?
+      if prefix = @prefix
         io << ':'
-        prefix.to_s io
+        io << prefix
         io << ' '
       end
 
-      io << command
+      io << @command
 
-      if params = self.params?
+      if params = @params
         params.each_with_index do |param, param_idx|
           io << ' '
 
-          trailing = false
-          param.each_char_with_index do |char, char_idx|
-            if char == '\0' || char == '\r' || char == '\n'
-              raise "Parameter cannot include '\\0', '\\r' or '\\n' while serialising #{inspect}"
-            end
-
-            if (char_idx == 0 && char == ':') || char == ' '
-              if param_idx == params.size - 1
-                trailing = true
-              else
-                raise "Non-trailing parameter cannot start with ':' or contain ' ' while serialising #{inspect}"
-              end
-            end
-          end
-
-          if param.empty?
-            if param_idx == params.size - 1
-              trailing = true
-            else
-              raise "Non-trailing parameter cannot be empty while serialising #{inspect}"
-            end
-          end
+          trailing = validate_param(param, last: param_idx == params.size - 1)
 
           io << ':' if trailing
           io << param
         end
+      end
+
+      io << "\r\n"
+    end
+
+    @[AlwaysInline]
+    private def validate_param(param, last)
+      trailing = false
+
+      if param.empty?
+        if last
+          trailing = true
+        else
+          raise "Non-trailing parameter cannot be empty while serialising #{inspect}"
+        end
+      end
+
+      param.each_char_with_index do |char, char_idx|
+        if char == '\0' || char == '\r' || char == '\n'
+          raise "Parameter cannot include '\\0', '\\r' or '\\n' while serialising #{inspect}"
+        end
+
+        if (char_idx == 0 && char == ':') || char == ' '
+          if last
+            trailing = true
+          else
+            raise "Non-trailing parameter cannot start with ':' or contain ' ' while serialising #{inspect}"
+          end
+        end
+      end
+
+      trailing
+    end
+  end
+
+  # Prefix of the IRC message (nick!user@host).
+  #
+  # IRC Prefixes can either consist of a nickname with optional user and host,
+  # or a server hostname. To handle both these cases, `source` is set to either
+  # the nick or server name depending on which type of prefix is received. This
+  # means `source` is always present.
+  struct Prefix
+    getter source : String
+    getter user : String?
+    getter host : String?
+
+    def initialize(*, @source, @user, @host)
+    end
+
+    # Returns true if the source of this prefix an IRC server.
+    #
+    # The check used for the is if the source contains a '.' character.
+    def server?
+      source.includes?('.')
+    end
+
+    # Returns true if the source of this prefix an IRC server.
+    #
+    # The same as `!server?`.
+    def user?
+      !server?
+    end
+
+    def inspect(io)
+      io << "Prefix(@source=#{@source.inspect}, @user=#{@user.inspect}, @host=#{@host.inspect})"
+    end
+
+    # Converts the prefix back into a raw IRC prefix (e.g. nick!user@host). Does
+    # not include leading ':'.
+    def to_s(io)
+      io << source
+
+      if user = @user
+        io << '!'
+        io << user
+      end
+
+      if host = @host
+        io << '@'
+        io << host
       end
     end
   end
