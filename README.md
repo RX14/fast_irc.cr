@@ -46,7 +46,7 @@ FastIRC::Message.new("PRIVMSG", ["#WAMM", "test message"]).to_s(io)
 
 You can also add IRCv3 tags and a prefix. `FastIRC::Tags` is simply an alias for `Hash(String, String?)`. It is recommended to use the `FastIRC::Tags` alias when creating tags hashes both to clear intent, and to make sure that you don't end up with a `Hash(String, String)` instead, which is a binary-incompatible type.
 
-```
+```cr
 prefix = FastIRC::Prefix.new(source: "RX14", user: "rx14", host: "rx14.co.uk")
 tags = FastIRC::Tags{"time" => "2016-11-11T22:27:15Z"}
 FastIRC::Message.new("PRIVMSG", ["#WAMM", "test message"], prefix: prefix, tags: tags).to_s(io)
