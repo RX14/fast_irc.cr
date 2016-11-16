@@ -3,12 +3,29 @@ module FastIRC
   #
   # To parse a line of IRC, see `FastIRC.parse` or `FastIRC.parse_line`.
   struct Message
-    # IRCv3 tags
-    getter tags : Tags?
+    @tags : Tags?
     # See `Prefix`
     getter prefix : Prefix?
     getter command : String
-    getter params : Array(String)?
+    @params : Array(String)?
+
+    def params
+      @params || Array(String).new
+    end
+
+    def params?
+      @params
+    end
+
+    # IRCv3 tags
+    def tags
+      @tags || Tags.new
+    end
+
+    # ditto
+    def tags?
+      @tags
+    end
 
     # ```
     # m = FastIRC::Message.new("PRIVMSG", ["#WAMM", "testing message"])
