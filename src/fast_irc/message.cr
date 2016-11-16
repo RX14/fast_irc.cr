@@ -8,7 +8,7 @@ module FastIRC
     # See `Prefix`
     getter prefix : Prefix?
     getter command : String
-    getter params : Array(String)?
+    getter! params : Array(String)?
 
     # ```
     # m = FastIRC::Message.new("PRIVMSG", ["#WAMM", "testing message"])
