@@ -1,7 +1,7 @@
 require "./fast_irc/*"
 
 module FastIRC
-  VERSION = "0.3.0"
+  VERSION = "0.3.1"
 
   alias Tags = Hash(String, String?)
 
