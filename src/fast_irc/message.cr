@@ -10,7 +10,7 @@ module FastIRC
     @params : Array(String)?
 
     def params
-      @params || Array(String).new
+      @params ||= Array(String).new
     end
 
     def params?
@@ -19,7 +19,7 @@ module FastIRC
 
     # IRCv3 tags
     def tags
-      @tags || Tags.new
+      @tags ||= Tags.new
     end
 
     # ditto
