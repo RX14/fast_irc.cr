@@ -69,6 +69,19 @@ module FastIRC
         if byte == '\r'.ord
           if (i + 1 < max_size) && @buffer[i + 1] == '\n'.ord
             return {i, i + 2}
+          elsif i + 1 == max_size
+            # In this case we don't know if the next character is '\n' or not!
+            read_size = fill_buffer
+
+            if read_size == 0
+              # If we read 0 bytes, we have reached EOF. We have the last IRC
+              # message of the stream, and the last character of the stream is
+              # '\r'. Return the entire buffer without the '\r'.
+              return {i, i + 1}
+            end
+
+            # This is a rare case so we just make a recursive call.
+            return find_line_size(start_index)
           else
             return {i, i + 1}
           end
