@@ -9,4 +9,10 @@ authors:
 description: |
   A fast IRC parsing library for crystal  
 
+targets:
+  parse-benchmark:
+    main: benchmark/parse.cr
+  serialize-benchmark:
+    main: benchmark/serialize.cr
+
 license: MIT
