@@ -10,6 +10,8 @@ module FastIRC
   # Parses a single IRC message, excluding crlf terminator. Set *strict* to be
   # true to enforce line length limits and raise in various other conditions.
   def self.parse_line(str : Slice(UInt8), *, strict = false) : Message
+    raise ParseException.new("Empty line!") if str.size == 0
+
     ptr_ircv3_start = str.to_unsafe.address
     if str[0] == '@'.ord
       # Parse IRCv3 tags
