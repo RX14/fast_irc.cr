@@ -13,6 +13,7 @@ module FastIRC
     def initialize(@io : IO, @strict = false)
       @buffer_memory = Slice(UInt8).new(8192)
       @buffer = @buffer_memory[0, 0]
+      @eof = false
     end
 
     # Reads the next IRC message from the IO, or returns nil on EOF.
@@ -24,77 +25,28 @@ module FastIRC
     # end
     # ```
     def next : Message?
-      # If the buffer is empty, we need to fill the buffer.
-      if @buffer.size == 0
-        read_size = fill_buffer
-        # If we read 0 bytes, we have reached EOF.
-        return nil if read_size == 0
-      end
+      line = Bytes.empty
+      while line.empty?
+        return nil if @eof
 
-      # Keep calling fill_buffer and find_line_size until we read a line. We
-      # also store start_index, which is the index of the byte to start scanning
-      # for line endings at. If find_line_size doesn't find an ending, this is
-      # always `@buffer.size` because of the condition on the while loop.
-      line_size, line_with_crlf_size = find_line_size
-      start_index = @buffer.size
-      while line_with_crlf_size == -1
-        read_size = fill_buffer
-
-        if read_size == 0
-          # If we read 0 bytes, we have reached EOF. Assume that we have an
-          # IRC message in the remainder of the buffer.
-          message = FastIRC.parse_line(@buffer, strict: @strict)
-          @buffer += @buffer.size
-          return message
-        end
-
-        line_size, line_with_crlf_size = find_line_size(start_index)
-        start_index = @buffer.size
-      end
-
-      # We have a line, parse it and increment buffer.
-      message = FastIRC.parse_line(@buffer[0, line_size], strict: @strict)
-      @buffer += line_with_crlf_size
-      message
-    end
-
-    # Returns {line_size, line_with_crlf_size}
-    @[AlwaysInline]
-    private def find_line_size(start_index = 0)
-      i = start_index
-      max_size = {@buffer.size, 1024}.min # IRCv3 max message size
-
-      while i < max_size
-        byte = @buffer[i]
-        if byte == '\r'.ord
-          if (i + 1 < max_size) && @buffer[i + 1] == '\n'.ord
-            return {i, i + 2}
-          elsif i + 1 == max_size
-            # In this case we don't know if the next character is '\n' or not!
-            read_size = fill_buffer
-
-            if read_size == 0
-              # If we read 0 bytes, we have reached EOF. We have the last IRC
-              # message of the stream, and the last character of the stream is
-              # '\r'. Return the entire buffer without the '\r'.
-              return {i, i + 1}
-            end
-
-            # This is a rare case so we just make a recursive call.
-            return find_line_size(start_index)
-          else
-            return {i, i + 1}
+        until index = @buffer.index('\n'.ord.to_u8)
+          read_size = fill_buffer
+          if read_size == 0
+            @eof = true
+            index = @buffer.size
+            break
           end
         end
 
-        if byte == '\n'.ord
-          return {i, i + 1}
-        end
+        index = index.not_nil!
 
-        i += 1
+        line = @buffer[0, index]
+        @buffer += {index + 1, @buffer.size}.min
+
+        line = line[0, line.size - 1] if line.size > 0 && line[-1] == '\r'.ord
       end
 
-      {-1, -1}
+      FastIRC.parse_line(line, strict: @strict)
     end
 
     @[AlwaysInline]

@@ -3,14 +3,6 @@ require "./spec_helper"
 describe FastIRC::Reader do
   context "reads messages" do
     it do
-      io = IO::Memory.new("ABC 123\r" * (8192 / 8))
-      FastIRC.parse(io) do |msg|
-        msg.command.should eq("ABC")
-        msg.params.should eq(["123"])
-      end
-    end
-
-    it do
       io = IO::Memory.new("ABC 123\n" * (8192 / 8))
       FastIRC.parse(io) do |msg|
         msg.command.should eq("ABC")
