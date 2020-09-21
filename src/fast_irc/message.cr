@@ -42,7 +42,7 @@ module FastIRC
     def to_s(io)
       if tags = @tags
         io << '@'
-        tags.join(';', io) do |(key, value)|
+        tags.join(io, ';') do |(key, value)|
           io << key
 
           if value
