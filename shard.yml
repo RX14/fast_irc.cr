@@ -4,7 +4,7 @@ version: 0.3.3
 crystal: 0.30.1
 
 authors:
-  - Chris Hobbs <chris@rx14.co.uk>
+  - Stephanie Wilde-Hobbs <git@stephanie.is>
 
 description: |
   A fast IRC parsing library for crystal  

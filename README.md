@@ -62,5 +62,5 @@ FastIRC::Message.new("PRIVMSG", ["#WAMM", "test message"], prefix: prefix, tags:
 
 ## Contributors
 
-- [RX14](https://github.com/RX14) Chris Hobbs - creator, maintainer
+- [RX14](https://github.com/RX14) Stephanie Wilde-Hobbs - creator, maintainer
 - [Kilobyte22](https://github.com/Kilobyte22) Stephan Henrichs - IRC serialisation, specs
