@@ -1,6 +1,2 @@
-version: 1.0
-shards:
-  power_assert:
-    github: rosylilly/power_assert.cr
-    commit: 7f2d946078a5a678f12bc46c36f71f98ad10a153
-
+version: 2.0
+shards: {}
