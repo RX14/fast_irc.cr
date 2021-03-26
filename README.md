@@ -19,7 +19,7 @@ Add it to `shard.yml`
 dependencies:
   fast_irc:
     github: RX14/fast_irc.cr
-    version: 0.3.3
+    version: 0.3.4
 ```
 
 ## Docs
